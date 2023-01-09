@@ -1,7 +1,7 @@
 import axios from "axios";
-const apiHost = "http://127.0.0.1:5000";
+// const apiHost = "http://127.0.0.1:5000";
 
-
+const apiHost = "server.easypayeasywash.tk";
 export const registers = (data) => {
     return axios
         .post(apiHost + `/signup`, data)
