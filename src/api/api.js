@@ -1,7 +1,7 @@
 import axios from "axios";
-// const apiHost = "http://127.0.0.1:5000";
+const apiHost = "http://127.0.0.1:5000";
 
-const apiHost = "server.easypayeasywash.tk";
+// const apiHost = "server.easypayeasywash.tk";
 export const registers = (data) => {
     return axios
         .post(apiHost + `/signup`, data)
@@ -38,9 +38,9 @@ export const createpostapi = (data) => {
 };
 
 
-export const blogsapi = () => {
+export const blogsapi = (userid) => {
     return axios
-        .get(apiHost + `/blogs`)
+        .get(apiHost + `/blogsall/`+userid)
         .then(response => {
             console.log(response.data);
             return response.data;
@@ -61,7 +61,17 @@ export const blogsdetailapi = (id) => {
             console.log(err);
         });
 };
-
+export const updatestatuspost = (id,status) => {
+    return axios
+        .get(apiHost + `/changestatuspost/${id}/${status}`)
+        .then(response => {
+            console.log(response.data);
+            return response.data;
+        })
+        .catch(err => {
+            console.log(err);
+        });
+};
 export const getcommentapi = (id) => {
     return axios
         .get(apiHost + `/comment/`+id)
@@ -134,6 +144,18 @@ export const deletecredit = (id,credit,blogid) => {
 export const checkblog = (id,blogid) => {
     return axios
         .get(apiHost + `/checkblog/${id}/${blogid}`)
+        .then(response => {
+            console.log(response.data);
+            return response.data;
+        })
+        .catch(err => {
+            console.log(err);
+        });
+};
+
+export const getlistbuyblog = (id) => {
+    return axios
+        .get(apiHost + `/getlistblogbuy/${id}`)
         .then(response => {
             console.log(response.data);
             return response.data;

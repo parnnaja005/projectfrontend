@@ -3,27 +3,35 @@ import react from 'react';
 import React from 'react';
 import Menu from './menu'
 import jwt_decode from "jwt-decode";
-import { blogsapi, getcredit, deletecredit, checkblog } from '../api/api';
+import { blogsapi, getcredit, deletecredit, checkblog, getlistbuyblog, updatestatuspost } from '../api/api';
 export default class blogs extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
+      mypurchaseblog: [],
       data: null,
       id: null,
+      role: null,
       credit: null
     }
   }
   componentDidMount() {
     if (localStorage.getItem('data') != null) {
       var decoded = jwt_decode(localStorage.getItem('data'));
+      console.log(decoded)
+      this.setState({ role: decoded.sub.role })
       getcredit(decoded.sub.id).then((res) => {
         this.setState({ credit: res.credit })
+      })
+      getlistbuyblog(decoded.sub.id).then((res) => {
+        console.log("Res getblog", res)
+        this.setState({ mypurchaseblog: res })
       })
       this.setState({ id: decoded.sub.id })
 
     }
-    blogsapi().then((res) => {
-      console.log(res)
+    blogsapi("1").then((res) => {
+      // console.log(res)
       this.setState({ data: res })
     })
   }
@@ -41,14 +49,27 @@ export default class blogs extends React.Component {
           if (credit > this.state.credit) {
             alert('not enough credit')
           } else {
-            deletecredit(this.state.id, credit, id).then((res) => {
-              console.log(res)
-              window.location.href = `/${id}`
-            })
+            if (window.confirm(`purchase confirmation ${credit} credit`) == true) {
+              deletecredit(this.state.id, credit, id).then((res) => {
+                console.log(res)
+                window.location.href = `/${id}`
+              })
+            }
           }
         }
       })
+
     }
+  }
+  UpdatestatusPost(id, status) {
+    this.setState({ data: null })
+    updatestatuspost(id, status ? 0 : 1).then((res) => {
+      console.log(res)
+      blogsapi("1").then((res) => {
+        // console.log(res)
+        this.setState({ data: res })
+      })
+    })
   }
   render() {
     return (
@@ -172,22 +193,32 @@ export default class blogs extends React.Component {
                     <div className="blog_page_wrapper">
                       <div className="blog_page_inner">
                         <div className="row">
-                          {this.state.data == null ? null : this.state.data.map((item, i) => <div className="col-sm-6 col-12 mb-50">
-                            <div className="single_blog_grid d-flex flex-column">
-                              <div className="blog_thumb">
-                                <a onClick={() => this.checkcredit(item._id.$oid, item.iduser, item.credit)}><img width={376} height={376} src={"https://drive.google.com/uc?export=download&id=" + item.image_id} alt="" /></a>
-                              </div>
-                              <div className="blog_content">
-                                <div className="blog_date">
-                                  <span><i className="icofont-calendar" />   {item.date}</span>
+                          {this.state.data == null ? null : this.state.data.map((item, i) =>
+                            item.status || item.iduser === this.state.id || this.state.role === "admin" ?
+                              <div className="col-sm-6 col-12 mb-50">
+                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                  {item.status ? <h4></h4> : <h4 style={{ color: "red" }}>โดนซ่อน</h4>}
+                                  {item.status && this.state.role === "admin" ? <button style={{ backgroundColor: 'gray' }} onClick={() => this.UpdatestatusPost(item._id.$oid, item.status)}>ซ่อน</button> : null}
+                                  {!item.status && this.state.role === "admin" ? <button style={{ backgroundColor: 'gray' }} onClick={() => this.UpdatestatusPost(item._id.$oid, item.status)}>โชว์</button> : null}
                                 </div>
-                                <h3><a onClick={() => this.checkcredit(item._id.$oid, item.iduser, item.credit)}>{item.title}</a></h3>
-                                <a onClick={() => this.checkcredit(item._id.$oid, item.iduser, item.credit)}>READ MORE</a>
-                              </div>
-                            </div>
-                          </div>)}
-                          {/* {this.state.data.map((item,i) => <li key={i}>Test</li>)} */}
+                                <div className="single_blog_grid d-flex flex-column">
+                                  <div className="blog_thumb">
+                                    <a onClick={() => this.checkcredit(item._id.$oid, item.iduser, item.credit)}><img width={376} height={376} src={"https://drive.google.com/uc?export=download&id=" + item.image_id} alt="" /></a>
+                                  </div>
+                                  <div className="blog_content">
+                                    <div className="blog_date">
+                                      <span><i className="icofont-calendar" />   {item.date}</span>
 
+                                      {this.state.mypurchaseblog.includes(item._id.$oid) ? <span style={{ paddingLeft: "10px" }}>ซื้อแล้ว</span> : <span style={{ paddingLeft: "10px" }}>{item.credit} Credit</span>}
+                                    </div>
+                                    <h3><a onClick={() => this.checkcredit(item._id.$oid, item.iduser, item.credit)}>{item.title}</a></h3>
+                                    <span>Cread By  {item.create_by}</span>
+                                    <br></br>
+                                    <a onClick={() => this.checkcredit(item._id.$oid, item.iduser, item.credit)}>READ MORE</a>
+                                  </div>
+                                </div>
+                              </div> : null
+                          )}
                         </div>
                       </div>
                       {/* <div className="pagination pagination_pages">
@@ -201,6 +232,7 @@ export default class blogs extends React.Component {
                     </div> */}
                     </div>
                   </div>
+
                 </div>
               </div>
             </section>

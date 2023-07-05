@@ -9,16 +9,17 @@ export default class menu extends React.Component {
             id: null,
             email: null,
             name: null,
-            credit:null
+            role:null,
+            credit: null
         }
     }
     componentDidMount() {
         if (localStorage.getItem('data') != null) {
             var decoded = jwt_decode(localStorage.getItem('data'));
-            getcredit(decoded.sub.id).then((res)=>{
-                this.setState({credit: res.credit})
+            getcredit(decoded.sub.id).then((res) => {
+                this.setState({ credit: res.credit })
             })
-            this.setState({ id: decoded.sub.id, email: decoded.sub.email, name: decoded.sub.name })
+            this.setState({ id: decoded.sub.id, email: decoded.sub.email, name: decoded.sub.name,role:decoded.sub.role })
 
         }
     }
@@ -89,6 +90,7 @@ export default class menu extends React.Component {
                                             </button>
                                             <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
                                                 <li><a className="dropdown-item" >name : {this.state.name} </a></li>
+                                                <li><a className="dropdown-item" >role : {this.state.role} </a></li>
                                                 <li><a className="dropdown-item">credit : {this.state.credit}</a></li>
                                                 <li><a className="dropdown-item" onClick={this.logout} style={{ color: "red" }}>LOGOUT</a></li>
                                             </ul>
